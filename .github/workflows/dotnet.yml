@@ -12,22 +12,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+      - name: aws configure
+        uses: aws-actions/configure-aws-credatials@v4
         with:
-          dotnet-version: '9.0.203'   # ✅ fixed quote mismatch
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRECT_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: ECR login
+        uses: aws-actions/amzon-ecr-login@v2 
+      - name: build and push
+        uses: docker/build-push-actions@v6 
+      - name: docker commands
+        run: |
+           aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 167004608601.dkr.ecr.us-west-2.amazonaws.com
+           docker image build -t dotnetapp:1.0
+           docker image tag githubactions:latest 167004608601.dkr.ecr.us-west-2.amazonaws.com/githubactions:latest
+           docker push 167004608601.dkr.ecr.us-west-2.amazonaws.com/githubactions:latest
+           
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.organization=charan
-            -Dsonar.projectKey=charan-09-08_nopCommerce
+      - name: EKS with mainfestfile
+        uses: actions-hub/kubectl@master 
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          KUBE_CONFING: ${{ secrets.KUBE_CONFING }}
+      - uses: tale/kubectl-actions@v1
+        run: |
+          kubectl apply -f .
+          kubectl get pod
 
-      - name: Publish .NET project
-        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo 
+ 

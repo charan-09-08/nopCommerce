@@ -8,6 +8,7 @@ on:
 jobs:
   dotnet_publish:
     runs-on: self-hosted
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -15,7 +16,8 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.203"
+          dotnet-version: '9.0.203'   # ✅ fixed quote mismatch
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -27,5 +29,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
+      - name: Restore dependencies
+        run: dotnet restore src/Presentation/Nop.Web/Nop.Web.csproj
+
+      - name: Build project
+        run: dotnet build -c Release src/Presentation/Nop.Web/Nop.Web.csproj --no-restore
+
       - name: Publish .NET project
-        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo
+        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo --no-build

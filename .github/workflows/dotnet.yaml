@@ -1,0 +1,18 @@
+
+name: mydotnet project
+
+
+on:
+   push:
+    branches:
+      - develop
+jobs:
+  dotnet_publish:
+       runs-on: 'ubuntu-latest'
+       steps:
+         - name: code checkout
+           uses: actions/checkout@v5
+         - name: this my dotnet publish command
+         - name: dotnet publish
+           run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o ./demo
+

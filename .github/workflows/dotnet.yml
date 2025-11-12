@@ -15,10 +15,21 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.203'
+          dotnet-version: '9.0.x'
 
       - name: Restore dependencies
         run: dotnet restore src/Presentation/Nop.Web/Nop.Web.csproj
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.organization=charan
+            -Dsonar.projectKey=charan-09-08_nopCommerce
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Publish .NET project
         run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo

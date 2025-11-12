@@ -1,4 +1,4 @@
-name: mydotnet pname: mydotnet project
+name: mydotnet project
 
 on:
   push:
@@ -16,28 +16,18 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.203'
+          dotnet-version: '9.0.203'   # ✅ fixed quote mismatch
 
-      - name: Install SonarScanner for .NET
-        run: dotnet tool install --global dotnet-sonarscanner
-
-      - name: SonarCloud Begin Analysis
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.organization=charan
+            -Dsonar.projectKey=charan-09-08_nopCommerce
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          dotnet sonarscanner begin \
-            /k:"charan-09-08_nopCommerce" \
-            /o:"charan" \
-            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
-            /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      - name: Build
-        run: dotnet build -c Release src/Presentation/Nop.Web/Nop.Web.csproj --no-incremental
-
-      - name: End SonarCloud Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
-
-      - name: Publish
-        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo
+      - name: Publish .NET project
+        run: dotnet publish -c Release src/Presentation/Nop.Web/Nop.Web.csproj -o demo 

@@ -15,11 +15,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore src/Presentation/Nop.Web/Nop.Web.csproj
-
+          dotnet-version: '9.0.203"
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:

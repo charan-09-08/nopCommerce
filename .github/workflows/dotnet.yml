@@ -10,33 +10,38 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      # Step 1: Checkout Code
       - name: Checkout code
         uses: actions/checkout@v5
-      - name: aws configure
-        uses: aws-actions/configure-aws-credatials@v4
+
+      # Step 2: Configure AWS Credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRECT_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: ECR login
-        uses: aws-actions/amzon-ecr-login@v2 
-      - name: build and push
-        uses: docker/build-push-actions@v6 
-      - name: docker commands
-        run: |
-           aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 167004608601.dkr.ecr.us-west-2.amazonaws.com
-           docker image build -t dotnetapp:1.0
-           docker image tag githubactions:latest 167004608601.dkr.ecr.us-west-2.amazonaws.com/githubactions:latest
-           docker push 167004608601.dkr.ecr.us-west-2.amazonaws.com/githubactions:latest
-           
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
 
-      - name: EKS with mainfestfile
-        uses: actions-hub/kubectl@master 
+      # Step 3: Login to Amazon ECR
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Step 4: Build and Push Docker Image to ECR
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: 167004608601.dkr.ecr.us-west-2.amazonaws.com/githubactions:latest
+
+      # Step 5: Configure kubectl (EKS access)
+      - name: Configure kubectl
+        uses: actions-hub/kubectl@master
         env:
-          KUBE_CONFING: ${{ secrets.KUBE_CONFING }}
-      - uses: tale/kubectl-actions@v1
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
+      # Step 6: Deploy to EKS using manifest files
+      - name: Deploy to EKS
         run: |
           kubectl apply -f .
-          kubectl get pod
-
- 
+          kubectl get pods
